@@ -1,70 +1,80 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React, { useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, interpolateColor } from 'react-native-reanimated';
 
 export default function HomeScreen() {
+
+  // Desde donde cae el texto
+  const titlePosition = useSharedValue(-800);
+  // Cuando el texto es visible
+  const opacity = useSharedValue(1);
+  // Cuando el fondo es el original
+  const backgroundColor = useSharedValue(0);
+
+  // Función de animación para la caida y opacidad del texto
+  const animatedTitleStyle = useAnimatedStyle(() => {
+    return {
+      // Velocidad y manera con la que cae el texto
+      transform: [{ translateY: withTiming(titlePosition.value, { duration: 6000, easing: Easing.bounce }) }],
+
+      // Cuando el texto deja de verse
+      opacity: withTiming(opacity.value, { duration: 1500 }),
+    };
+  });
+
+  // Función de animación para cambiar el fondo
+  const animatedBackgroundStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: interpolateColor(
+        backgroundColor.value,
+        [0, 1],
+        ['black', '#3f6']
+      ),
+    };
+  });
+
+  // Uso el useEffect para cargar la animación del texto cayendo
+  useEffect(() => {
+    titlePosition.value = 0;
+  }, []);
+
+  // Función para detectar cuando se presiona el botón, esto activa las animaciones de opacidad, el 0 para ocultar todo el texto y el 1 para mostrar el nuevo fondo
+  const handlePress = () => {
+    opacity.value = withTiming(0, { duration: 1500 });
+    backgroundColor.value = withTiming(1, { duration: 1500 });
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <Animated.View style={[styles.container, animatedBackgroundStyle]}>
+      <Animated.Text style={[styles.title, animatedTitleStyle]}>Mi Aplicación Animada</Animated.Text>
+      <TouchableOpacity onPress={handlePress} style={styles.buttonContainer}>
+        <Text style={styles.buttonText}>
+          Iniciar
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 30,
+    textAlign: 'center',
+    color: '#fff',
+    marginBottom: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  buttonContainer: {
+    backgroundColor: '#36f',
+    padding: 10,
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontSize: 20,
+    color: '#fff',
   },
 });
